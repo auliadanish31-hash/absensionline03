@@ -17,4 +17,489 @@
         .tab-button.active {
             border-bottom-color: #3b82f6;
             color: #3b82f6;
-            fo
+            font-weight: 600;
+        }
+        .modal-content {
+            max-height: 70vh;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Halaman Login -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-4xl p-8 bg-white rounded-xl shadow-lg">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Selamat Datang</h1>
+                <p class="mt-2 text-gray-500">Aplikasi Absensi & Literasi Siswa</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12">
+                <!-- Login User -->
+                <div class="text-center flex flex-col items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-700">Masuk sebagai Siswa</h2>
+                        <p class="text-sm text-gray-500 mt-2">Isi absensi, lihat buku, dan capai target membacamu!</p>
+                    </div>
+                    <button id="user-login-button" class="mt-6 w-full max-w-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                        Masuk Siswa
+                    </button>
+                </div>
+                <!-- Login Admin -->
+                <div class="text-center flex flex-col items-center justify-between border-t md:border-t-0 md:border-l border-gray-200 pt-8 md:pt-0 md:pl-12">
+                    <div>
+                         <h2 class="text-xl font-semibold text-gray-700">Masuk sebagai Admin</h2>
+                        <p class="text-sm text-gray-500 mt-2">Lihat statistik kehadiran dan kelola data.</p>
+                        <div class="mt-4 max-w-xs mx-auto">
+                            <input type="password" id="admin-password" class="w-full p-2 border border-gray-300 rounded-lg text-center" placeholder="Masukkan Kata Sandi">
+                        </div>
+                        <p id="admin-error" class="text-red-500 text-xs mt-2 h-4"></p>
+                    </div>
+                    <button id="admin-login-button" class="mt-2 w-full max-w-xs bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
+                        Masuk Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Halaman Aplikasi Utama -->
+    <div id="app-page" class="hidden w-full max-w-5xl mx-auto p-4 md:p-6">
+        <div class="bg-white rounded-xl shadow-lg">
+            <!-- Header -->
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h1 id="app-title" class="text-2xl font-bold text-gray-800"></h1>
+                <button id="logout-button" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition duration-300">
+                    Keluar
+                </button>
+            </div>
+            
+            <!-- Konten Aplikasi -->
+            <div class="p-6">
+                <!-- TABS UNTUK NAVIGASI -->
+                <div class="border-b border-gray-200">
+                    <nav id="tabs" class="-mb-px flex space-x-6" aria-label="Tabs">
+                        <!-- Tab akan di-generate oleh JS -->
+                    </nav>
+                </div>
+
+                <!-- KONTEN USER -->
+                <div id="user-content" class="hidden">
+                    <!-- Tab Absensi -->
+                    <div id="absensi-tab-content" class="tab-content py-6">
+                        <form id="attendance-form" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                            <div class="space-y-4">
+                                <div><label for="nama" class="block text-sm font-medium text-gray-700">Nama Lengkap</label><input type="text" id="nama" required class="mt-1 w-full p-2 border border-gray-300 rounded-lg"></div>
+                                <div><label for="kelas" class="block text-sm font-medium text-gray-700">Kelas</label><input type="text" id="kelas" required class="mt-1 w-full p-2 border border-gray-300 rounded-lg"></div>
+                                <div><label for="no_absen" class="block text-sm font-medium text-gray-700">Nomor Absen</label><input type="number" id="no_absen" required class="mt-1 w-full p-2 border border-gray-300 rounded-lg"></div>
+                            </div>
+                            <div class="space-y-4">
+                                <label class="block text-sm font-medium text-gray-700">Status Literasi Hari Ini</label>
+                                <div class="flex items-center space-x-6 pt-1">
+                                    <div class="flex items-center"><input id="sudah-baca" name="status_baca" type="radio" value="Sudah Baca" required class="h-4 w-4"><label for="sudah-baca" class="ml-2">Sudah Baca</label></div>
+                                    <div class="flex items-center"><input id="belum-baca" name="status_baca" type="radio" value="Belum Baca" required class="h-4 w-4"><label for="belum-baca" class="ml-2">Belum Baca</label></div>
+                                </div>
+                                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition mt-6">Kirim Absensi</button>
+                            </div>
+                        </form>
+                         <div class="mt-8">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Data Kehadiran Terbaru</h2>
+                            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                                <table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Absen</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu</th></tr></thead><tbody id="attendance-table-body" class="bg-white divide-y divide-gray-200"></tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Tab Daftar Buku -->
+                    <div id="buku-tab-content" class="tab-content hidden py-6">
+                        <div id="book-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                    </div>
+                    <!-- Tab Ulasan Buku -->
+                    <div id="ulasan-tab-content" class="tab-content hidden py-6">
+                         <h2 class="text-xl font-semibold text-gray-800 mb-4">Semua Ulasan Buku</h2>
+                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Judul Buku</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ulasan</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Siswa</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="review-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Tab Target Mingguan -->
+                    <div id="target-tab-content" class="tab-content hidden py-6">
+                         <div class="bg-blue-50 p-6 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-800">Target Membaca Mingguan</h3>
+                            <div class="mt-4 flex items-center gap-4">
+                                <input type="number" id="weekly-goal-input" min="1" class="w-24 p-2 border border-gray-300 rounded-lg" placeholder="Contoh: 5">
+                                <button id="set-goal-button" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg">Atur Target</button>
+                            </div>
+                            <div id="goal-progress" class="mt-6"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KONTEN ADMIN -->
+                <div id="admin-content" class="hidden">
+                    <div id="statistik-tab-content" class="tab-content py-6">
+                         <h2 class="text-xl font-semibold text-gray-800 mb-4">Statistik Kehadiran Mingguan</h2>
+                         <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                            <p class="text-sm text-gray-600 mb-4">Grafik ini menunjukkan jumlah siswa yang mengisi absensi setiap hari selama 7 hari terakhir.</p>
+                            <div id="stats-chart" class="w-full h-64 flex items-end justify-around gap-2">
+                                <!-- Statistik akan di-generate oleh JS -->
+                            </div>
+                         </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal untuk Baca Buku & Tulis Ulasan -->
+    <div id="reading-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+            <div class="p-6 border-b"><h3 id="reading-modal-title" class="text-xl font-semibold"></h3></div>
+            <div class="p-6 modal-content overflow-y-auto">
+                <div id="reading-modal-content" class="prose max-w-none text-gray-700 mb-6"></div>
+                <hr>
+                <div class="mt-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">Tulis Ulasanmu</h4>
+                    <div><label for="review-student-name" class="block text-sm font-medium text-gray-700">Nama Kamu</label><input type="text" id="review-student-name" required class="mt-1 w-full p-2 border border-gray-300 rounded-lg" placeholder="Tulis nama lengkapmu..."></div>
+                    <div class="mt-4"><label for="review-textarea" class="block text-sm font-medium text-gray-700">Ulasan</label><textarea id="review-textarea" class="mt-1 w-full h-24 p-2 border border-gray-300 rounded-lg" placeholder="Bagaimana pendapatmu tentang buku ini?"></textarea></div>
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 flex justify-end gap-3 rounded-b-lg">
+                <button id="cancel-review-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg">Tutup</button>
+                <button id="submit-review-button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">Kirim Ulasan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // === KUNCI & DATA ===
+            const ATTENDANCE_KEY = 'attendanceData';
+            const BOOKS_KEY = 'bookData';
+            const GOAL_KEY = 'weeklyGoal';
+            const REVIEWS_KEY = 'reviewsData';
+            const ADMIN_PASS = 'admin123';
+
+            const sampleBooks = [
+                { id: 1, title: 'Jejak Digital Sang Juara', author: 'Cerita Edukasi', category: 'Media Sosial', content: 'Rian, seorang siswa SMP yang populer, suka sekali mengunggah semua kegiatannya. Suatu hari, sebuah komentar iseng yang ia tulis di unggahan temannya disalahartikan dan menjadi viral. Rian belajar bahwa tidak semua hal perlu dibagikan dan setiap kata di dunia maya memiliki konsekuensi. Ia pun mulai menggunakan media sosialnya untuk menyebarkan hal-hal positif.' },
+                { id: 2, title: 'Warna-Warni Pensi Kami', author: 'Cerita Edukasi', category: 'Toleransi', content: 'Di SMA Pelita, murid-muridnya berasal dari berbagai suku dan agama. Menjelang pentas seni, terjadi perdebatan tentang tema acara. Akhirnya, Budi dari Jawa dan Sarah dari Batak mencetuskan ide untuk menggabungkan keduanya. Mereka menampilkan drama musikal yang menceritakan persahabatan di tengah perbedaan, membuktikan bahwa keberagaman justru membuat acara mereka paling meriah.' },
+                { id: 3, title: 'Robot Penyelamat Bumi', author: 'Cerita Edukasi', category: 'Lingkungan', content: 'Sekolah Adiwiyata mengadakan lomba membuat karya dari barang bekas. Anya, Dito, dan Chandra awalnya bingung. Namun, setelah melihat tumpukan botol plastik dan kardus, mereka punya ide brilian membuat robot setinggi satu meter. Karya mereka tidak hanya memenangkan lomba, tetapi juga menyadarkan seluruh sekolah bahwa sampah bisa diubah menjadi sesuatu yang bernilai.' },
+                { id: 4, title: 'Filter Kebahagiaan', author: 'Cerita Edukasi', category: 'Media Sosial', content: 'Lisa selalu merasa minder melihat kehidupan teman-temannya di media sosial yang tampak sempurna. Suatu saat, ia bertemu langsung dengan idolanya dan menyadari kehidupan nyata mereka tidak seindah yang ditampilkan. Lisa pun belajar untuk lebih mencintai dirinya sendiri dan memahami bahwa media sosial hanyalah panggung yang menampilkan sisi terbaik saja.' },
+                { id: 5, title: 'Bekal Istimewa', author: 'Cerita Edukasi', category: 'Toleransi', content: 'Setiap istirahat, Made yang dari Bali selalu membawa bekal nasi jinggo. Awalnya ia malu, namun suatu hari ia memberanikan diri berbagi. Ternyata, teman-temannya sangat suka. Sejak saat itu, mereka mengadakan "Jumat Berbagi Bekal", di mana setiap anak membawa makanan khas daerahnya, menjadi simbol persatuan dalam keragaman rasa.' },
+                { id: 6, title: 'Taman Vertikal Kelas 7B', author: 'Cerita Edukasi', category: 'Lingkungan', content: 'Kelas 7B terkenal gersang dan panas. Ibu Guru menantang mereka untuk membuat kelas lebih hijau tanpa biaya. Mereka mengumpulkan botol-botol bekas, mengecatnya, dan mengubahnya menjadi pot gantung. Dinding kelas mereka kini menjadi taman vertikal yang indah, membuat kelas lebih sejuk dan menjadi percontohan bagi kelas lain.' },
+            ];
+            
+            if (!localStorage.getItem(BOOKS_KEY)) localStorage.setItem(BOOKS_KEY, JSON.stringify(sampleBooks));
+            if (!localStorage.getItem(REVIEWS_KEY)) localStorage.setItem(REVIEWS_KEY, JSON.stringify([]));
+
+            // === REFERENSI ELEMEN ===
+            const loginPage = document.getElementById('login-page');
+            const appPage = document.getElementById('app-page');
+            const userLoginBtn = document.getElementById('user-login-button');
+            const adminLoginBtn = document.getElementById('admin-login-button');
+            const adminPasswordInput = document.getElementById('admin-password');
+            const adminError = document.getElementById('admin-error');
+            const logoutButton = document.getElementById('logout-button');
+            const appTitle = document.getElementById('app-title');
+            const tabsContainer = document.getElementById('tabs');
+            const userContent = document.getElementById('user-content');
+            const adminContent = document.getElementById('admin-content');
+            const attendanceForm = document.getElementById('attendance-form');
+            const attendanceTableBody = document.getElementById('attendance-table-body');
+            const reviewTableBody = document.getElementById('review-table-body');
+            const bookListContainer = document.getElementById('book-list');
+            const readingModal = document.getElementById('reading-modal');
+            const setGoalButton = document.getElementById('set-goal-button');
+
+            // === FUNGSI UTAMA ===
+
+            // 1. FUNGSI LOGIN & TAMPILAN
+            function checkLoginStatus() {
+                const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+                if (isLoggedIn) {
+                    loginPage.classList.add('hidden');
+                    appPage.classList.remove('hidden');
+                    setupDashboard();
+                } else {
+                    appPage.classList.add('hidden');
+                    loginPage.classList.remove('hidden');
+                }
+            }
+
+            function setupDashboard() {
+                const role = sessionStorage.getItem('userRole');
+                tabsContainer.innerHTML = '';
+                adminContent.classList.add('hidden');
+                userContent.classList.add('hidden');
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+
+                if (role === 'admin') {
+                    setupAdminDashboard();
+                } else {
+                    setupUserDashboard();
+                }
+            }
+            
+            function setupUserDashboard() {
+                appTitle.textContent = 'Dasbor Siswa';
+                userContent.classList.remove('hidden');
+
+                const userTabs = [
+                    { name: 'Absensi', target: 'absensi-tab-content' },
+                    { name: 'Daftar Buku', target: 'buku-tab-content' },
+                    { name: 'Ulasan Buku', target: 'ulasan-tab-content' },
+                    { name: 'Target Mingguan', target: 'target-tab-content' },
+                ];
+                renderTabs(userTabs);
+                document.getElementById('absensi-tab-content').classList.remove('hidden');
+                renderAttendanceData();
+                renderAllReviews();
+                renderBooks();
+                renderWeeklyGoal();
+            }
+
+            function setupAdminDashboard() {
+                appTitle.textContent = 'Dasbor Admin';
+                adminContent.classList.remove('hidden');
+                
+                const adminTabs = [ { name: 'Statistik Kehadiran', target: 'statistik-tab-content' } ];
+                renderTabs(adminTabs);
+                document.getElementById('statistik-tab-content').classList.remove('hidden');
+                renderAttendanceStats();
+            }
+
+            function renderTabs(tabs) {
+                tabs.forEach((tab, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = tab.name;
+                    button.className = `tab-button py-3 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300`;
+                    if (index === 0) button.classList.add('active');
+                    
+                    button.onclick = () => {
+                        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                        document.getElementById(tab.target).classList.remove('hidden');
+                    };
+                    tabsContainer.appendChild(button);
+                });
+            }
+
+            // 2. FUNGSI DATA
+            function renderAttendanceData() {
+                attendanceTableBody.innerHTML = '';
+                const data = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
+                if (data.length === 0) {
+                    attendanceTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Belum ada data.</td></tr>`;
+                    return;
+                }
+                data.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+                data.forEach(d => {
+                    const date = new Date(d.waktu);
+                    const formattedTime = date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="px-6 py-4 text-sm font-medium text-gray-900">${d.nama}</td><td class="px-6 py-4 text-sm text-gray-500">${d.kelas}</td><td class="px-6 py-4 text-sm text-gray-500">${d.no_absen}</td><td class="px-6 py-4 text-sm"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${d.status === 'Sudah Baca' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${d.status}</span></td><td class="px-6 py-4 text-sm text-gray-500">${formattedTime}</td>`;
+                    attendanceTableBody.appendChild(tr);
+                });
+            }
+
+            function renderAllReviews() {
+                reviewTableBody.innerHTML = '';
+                const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]');
+                 if (reviews.length === 0) {
+                    reviewTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">Belum ada ulasan.</td></tr>`;
+                    return;
+                }
+                reviews.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                reviews.forEach(r => {
+                    const date = new Date(r.timestamp);
+                    const formattedTime = date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="px-6 py-4 text-sm font-medium text-gray-900">${r.bookTitle}</td><td class="px-6 py-4 text-sm text-gray-500">${r.reviewText}</td><td class="px-6 py-4 text-sm text-gray-500">${r.studentName}</td><td class="px-6 py-4 text-sm text-gray-500">${formattedTime}</td>`;
+                    reviewTableBody.appendChild(tr);
+                });
+            }
+
+            function renderAttendanceStats() {
+                const chartContainer = document.getElementById('stats-chart');
+                chartContainer.innerHTML = '';
+                const data = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
+                const stats = {};
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const key = d.toISOString().split('T')[0];
+                    stats[key] = 0;
+                }
+                data.forEach(entry => {
+                    const key = entry.waktu.split('T')[0];
+                    if (stats.hasOwnProperty(key)) {
+                        stats[key]++;
+                    }
+                });
+
+                const maxCount = Math.max(...Object.values(stats), 1);
+                const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+                Object.keys(stats).forEach(key => {
+                    const count = stats[key];
+                    const heightPercentage = (count / maxCount) * 100;
+                    const dayIndex = new Date(key).getDay();
+
+                    const barWrapper = document.createElement('div');
+                    barWrapper.className = 'h-full w-12 flex flex-col items-center justify-end';
+                    barWrapper.innerHTML = `
+                        <span class="text-xs font-bold">${count}</span>
+                        <div class="w-full bg-blue-200 rounded-t-md" style="height: ${heightPercentage}%"></div>
+                        <span class="text-xs text-gray-500 mt-1">${days[dayIndex]}</span>
+                    `;
+                    chartContainer.appendChild(barWrapper);
+                });
+            }
+
+            // 3. FUNGSI BUKU & MODAL BACA
+            function renderBooks() {
+                bookListContainer.innerHTML = '';
+                const books = JSON.parse(localStorage.getItem(BOOKS_KEY));
+                books.forEach(book => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-white border border-gray-200 rounded-lg p-4 flex flex-col';
+                    card.innerHTML = `<div class="flex-grow"><span class="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">${book.category}</span><h4 class="font-bold text-gray-800 mt-2">${book.title}</h4><p class="text-sm text-gray-500">${book.author}</p><p class="text-xs text-gray-600 italic mt-3 line-clamp-2">${book.content}</p></div><button data-book-id="${book.id}" class="read-review-btn mt-4 w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2 px-3 rounded-lg text-sm">Baca & Ulas</button>`;
+                    bookListContainer.appendChild(card);
+                });
+            }
+
+            function openReadingModal(bookId) {
+                const books = JSON.parse(localStorage.getItem(BOOKS_KEY));
+                const book = books.find(b => b.id == bookId);
+                readingModal.querySelector('#reading-modal-title').textContent = book.title;
+                readingModal.querySelector('#reading-modal-content').textContent = book.content;
+                readingModal.querySelector('#review-textarea').value = '';
+                readingModal.querySelector('#review-student-name').value = document.getElementById('nama').value || ''; // Coba ambil nama dari form absensi
+                readingModal.querySelector('#submit-review-button').dataset.bookId = bookId;
+                readingModal.classList.remove('hidden');
+            }
+
+            // 4. FUNGSI TARGET MINGGUAN
+            function renderWeeklyGoal() {
+                const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{}');
+                const target = goalData.target || 0;
+                const progress = goalData.progress || 0;
+                const percentage = target > 0 ? (progress / target) * 100 : 0;
+
+                const progressContainer = document.getElementById('goal-progress');
+                document.getElementById('weekly-goal-input').value = target > 0 ? target : '';
+
+                progressContainer.innerHTML = `<p class="text-sm text-gray-600">Progres Kamu: <span class="font-bold">${progress} dari ${target}</span> buku/artikel terbaca.</p><div class="w-full bg-gray-200 rounded-full h-4 mt-2"><div class="bg-green-500 h-4 rounded-full" style="width: ${percentage}%"></div></div>`;
+            }
+            
+            function updateGoalProgress() {
+                const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{ "target": 0, "progress": 0 }');
+                const lastUpdate = goalData.lastUpdate ? new Date(goalData.lastUpdate) : new Date(0);
+                const now = new Date();
+                const lastUpdateWeek = Math.floor((lastUpdate.getTime() - lastUpdate.getTimezoneOffset() * 60000) / (1000 * 60 * 60 * 24 * 7));
+                const nowWeek = Math.floor((now.getTime() - now.getTimezoneOffset() * 60000) / (1000 * 60 * 60 * 24 * 7));
+                if (nowWeek > lastUpdateWeek) goalData.progress = 0;
+                goalData.progress = (goalData.progress || 0) + 1;
+                goalData.lastUpdate = now.toISOString();
+                localStorage.setItem(GOAL_KEY, JSON.stringify(goalData));
+            }
+
+            // === EVENT LISTENERS ===
+            userLoginBtn.addEventListener('click', () => {
+                sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('userRole', 'user');
+                checkLoginStatus();
+            });
+
+            adminLoginBtn.addEventListener('click', () => {
+                if(adminPasswordInput.value === ADMIN_PASS) {
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('userRole', 'admin');
+                    adminPasswordInput.value = '';
+                    adminError.textContent = '';
+                    checkLoginStatus();
+                } else {
+                    adminError.textContent = 'Kata sandi salah!';
+                }
+            });
+
+            logoutButton.addEventListener('click', () => {
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('userRole');
+                checkLoginStatus();
+            });
+
+            attendanceForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newEntry = {
+                    nama: document.getElementById('nama').value.trim(),
+                    kelas: document.getElementById('kelas').value.trim(),
+                    no_absen: document.getElementById('no_absen').value,
+                    status: document.querySelector('input[name="status_baca"]:checked').value,
+                    waktu: new Date().toISOString()
+                };
+                const data = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
+                data.push(newEntry);
+                localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(data));
+                if (newEntry.status === 'Sudah Baca') {
+                    updateGoalProgress();
+                    renderWeeklyGoal();
+                }
+                renderAttendanceData();
+                attendanceForm.reset();
+            });
+            
+            bookListContainer.addEventListener('click', (e) => {
+                const targetButton = e.target.closest('.read-review-btn');
+                if (targetButton) {
+                    openReadingModal(targetButton.dataset.bookId);
+                }
+            });
+            
+            readingModal.querySelector('#cancel-review-button').addEventListener('click', () => readingModal.classList.add('hidden'));
+            
+            readingModal.querySelector('#submit-review-button').addEventListener('click', (e) => {
+                const bookId = e.target.dataset.bookId;
+                const reviewText = readingModal.querySelector('#review-textarea').value.trim();
+                const studentName = readingModal.querySelector('#review-student-name').value.trim();
+
+                if (reviewText && studentName) {
+                    const books = JSON.parse(localStorage.getItem(BOOKS_KEY));
+                    const book = books.find(b => b.id == bookId);
+                    const newReview = { bookId: book.id, bookTitle: book.title, studentName: studentName, reviewText: reviewText, timestamp: new Date().toISOString() };
+                    const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY));
+                    reviews.push(newReview);
+                    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+                    renderAllReviews();
+                    readingModal.classList.add('hidden');
+                } else {
+                    alert('Nama dan ulasan tidak boleh kosong!');
+                }
+            });
+            
+            setGoalButton.addEventListener('click', () => {
+                const target = document.getElementById('weekly-goal-input').value;
+                if(target && target > 0) {
+                    const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{}');
+                    goalData.target = parseInt(target);
+                    if(goalData.progress === undefined) goalData.progress = 0;
+                    localStorage.setItem(GOAL_KEY, JSON.stringify(goalData));
+                    renderWeeklyGoal();
+                }
+            });
+
+            // Jalankan pengecekan login saat halaman dimuat
+            checkLoginStatus();
+        });
+    </script>
+</body>
+</html>
