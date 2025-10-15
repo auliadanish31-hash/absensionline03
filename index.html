@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Absensi & Literasi</title>
+    <!-- Memuat Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Memuat Tailwind CSS untuk styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Menggunakan font Inter dari Google Fonts -->
@@ -28,7 +30,7 @@
 
     <!-- Halaman Login -->
     <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-4xl p-8 bg-white rounded-xl shadow-lg">
+        <div id="login-container" class="w-full max-w-4xl p-8 bg-white rounded-xl shadow-lg">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">Selamat Datang</h1>
                 <p class="mt-2 text-gray-500">Aplikasi Absensi & Literasi Siswa</p>
@@ -181,15 +183,43 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // === KUNCI & DATA ===
-            const ATTENDANCE_KEY = 'attendanceData';
-            const BOOKS_KEY = 'bookData';
-            const GOAL_KEY = 'weeklyGoal';
-            const REVIEWS_KEY = 'reviewsData';
-            const ADMIN_PASS = 'admin123';
+            // === KONEKSI SUPABASE ===
+            // GANTI DENGAN URL DAN KUNCI ANON SUPABASE ANDA DARI PROYEK SUPABASE
+            const SUPABASE_URL = 'https://uyljswbfmifypzzzlxzh.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5bGpzd2JmbWlmeXB6enpseHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzMDEwOTcsImV4cCI6MjA3NTg3NzA5N30.YS0ysqali8ub71Kbn1pkW6E-cNuYfdYt5HQaK6pVrtE';
 
+            // Cek apakah URL dan Key masih placeholder
+            if (SUPABASE_URL.includes('URL_PROYEK_ANDA') || SUPABASE_ANON_KEY.includes('KUNCI_ANON_ANDA')) {
+                const loginContainer = document.getElementById('login-container');
+                loginContainer.innerHTML = `
+                    <div class="text-center py-10">
+                        <h2 class="text-2xl font-bold text-red-600">Konfigurasi Diperlukan!</h2>
+                        <p class="text-gray-600 mt-4">
+                            Harap ganti nilai <code class="bg-red-100 text-red-700 p-1 rounded">SUPABASE_URL</code> dan <code class="bg-red-100 text-red-700 p-1 rounded">SUPABASE_ANON_KEY</code> di dalam file HTML ini dengan kredensial dari proyek Supabase Anda.
+                        </p>
+                        <p class="text-gray-500 mt-2 text-sm">Ikuti instruksi di file PANDUAN.md untuk menyelesaikannya.</p>
+                    </div>
+                `;
+                return; // Menghentikan eksekusi skrip lebih lanjut
+            }
+
+            let supabaseClient;
+            try {
+                // 'supabase' here is the global object from the Supabase script.
+                // We create a client instance and store it in 'supabaseClient'.
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } catch (error) {
+                console.error("Supabase initialization failed. Please check your URL and Key.", error);
+                const appBody = document.querySelector("#app-page .p-6");
+                if (appBody) {
+                    appBody.innerHTML = `<div class="text-center py-10"><h2 class="text-xl font-bold text-red-600">Koneksi Gagal</h2><p class="text-gray-600 mt-2">Pastikan SUPABASE_URL dan SUPABASE_ANON_KEY sudah benar.</p></div>`;
+                }
+            }
+            
+            // === DATA STATIS ===
+            const ADMIN_PASS = 'admin123';
             const sampleBooks = [
-                { id: 1, title: 'Jejak Digital Sang Juara', author: 'Cerita Edukasi', category: 'Media Sosial', content: 'Rian, seorang siswa SMP yang populer, suka sekali mengunggah semua kegiatannya. Suatu hari, sebuah komentar iseng yang ia tulis di unggahan temannya disalahartikan dan menjadi viral. Rian belajar bahwa tidak semua hal perlu dibagikan dan setiap kata di dunia maya memiliki konsekuensi. Ia pun mulai menggunakan media sosialnya untuk menyebarkan hal-hal positif.' },
+                 { id: 1, title: 'Jejak Digital Sang Juara', author: 'Cerita Edukasi', category: 'Media Sosial', content: 'Rian, seorang siswa SMP yang populer, suka sekali mengunggah semua kegiatannya. Suatu hari, sebuah komentar iseng yang ia tulis di unggahan temannya disalahartikan dan menjadi viral. Rian belajar bahwa tidak semua hal perlu dibagikan dan setiap kata di dunia maya memiliki konsekuensi. Ia pun mulai menggunakan media sosialnya untuk menyebarkan hal-hal positif.' },
                 { id: 2, title: 'Warna-Warni Pensi Kami', author: 'Cerita Edukasi', category: 'Toleransi', content: 'Di SMA Pelita, murid-muridnya berasal dari berbagai suku dan agama. Menjelang pentas seni, terjadi perdebatan tentang tema acara. Akhirnya, Budi dari Jawa dan Sarah dari Batak mencetuskan ide untuk menggabungkan keduanya. Mereka menampilkan drama musikal yang menceritakan persahabatan di tengah perbedaan, membuktikan bahwa keberagaman justru membuat acara mereka paling meriah.' },
                 { id: 3, title: 'Robot Penyelamat Bumi', author: 'Cerita Edukasi', category: 'Lingkungan', content: 'Sekolah Adiwiyata mengadakan lomba membuat karya dari barang bekas. Anya, Dito, dan Chandra awalnya bingung. Namun, setelah melihat tumpukan botol plastik dan kardus, mereka punya ide brilian membuat robot setinggi satu meter. Karya mereka tidak hanya memenangkan lomba, tetapi juga menyadarkan seluruh sekolah bahwa sampah bisa diubah menjadi sesuatu yang bernilai.' },
                 { id: 4, title: 'Filter Kebahagiaan', author: 'Cerita Edukasi', category: 'Media Sosial', content: 'Lisa selalu merasa minder melihat kehidupan teman-temannya di media sosial yang tampak sempurna. Suatu saat, ia bertemu langsung dengan idolanya dan menyadari kehidupan nyata mereka tidak seindah yang ditampilkan. Lisa pun belajar untuk lebih mencintai dirinya sendiri dan memahami bahwa media sosial hanyalah panggung yang menampilkan sisi terbaik saja.' },
@@ -197,9 +227,6 @@
                 { id: 6, title: 'Taman Vertikal Kelas 7B', author: 'Cerita Edukasi', category: 'Lingkungan', content: 'Kelas 7B terkenal gersang dan panas. Ibu Guru menantang mereka untuk membuat kelas lebih hijau tanpa biaya. Mereka mengumpulkan botol-botol bekas, mengecatnya, dan mengubahnya menjadi pot gantung. Dinding kelas mereka kini menjadi taman vertikal yang indah, membuat kelas lebih sejuk dan menjadi percontohan bagi kelas lain.' },
             ];
             
-            if (!localStorage.getItem(BOOKS_KEY)) localStorage.setItem(BOOKS_KEY, JSON.stringify(sampleBooks));
-            if (!localStorage.getItem(REVIEWS_KEY)) localStorage.setItem(REVIEWS_KEY, JSON.stringify([]));
-
             // === REFERENSI ELEMEN ===
             const loginPage = document.getElementById('login-page');
             const appPage = document.getElementById('app-page');
@@ -220,11 +247,15 @@
             const setGoalButton = document.getElementById('set-goal-button');
 
             // === FUNGSI UTAMA ===
+            function handleSupabaseError(error, feature) {
+                console.error(`Error ${feature}:`, error);
+                alert(`Terjadi kesalahan saat ${feature}. Periksa konsol untuk detail.`);
+            }
 
             // 1. FUNGSI LOGIN & TAMPILAN
             function checkLoginStatus() {
                 const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-                if (isLoggedIn) {
+                if (isLoggedIn && supabaseClient) {
                     loginPage.classList.add('hidden');
                     appPage.classList.remove('hidden');
                     setupDashboard();
@@ -240,18 +271,13 @@
                 adminContent.classList.add('hidden');
                 userContent.classList.add('hidden');
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-
-                if (role === 'admin') {
-                    setupAdminDashboard();
-                } else {
-                    setupUserDashboard();
-                }
+                if (role === 'admin') setupAdminDashboard();
+                else setupUserDashboard();
             }
             
             function setupUserDashboard() {
                 appTitle.textContent = 'Dasbor Siswa';
                 userContent.classList.remove('hidden');
-
                 const userTabs = [
                     { name: 'Absensi', target: 'absensi-tab-content' },
                     { name: 'Daftar Buku', target: 'buku-tab-content' },
@@ -269,7 +295,6 @@
             function setupAdminDashboard() {
                 appTitle.textContent = 'Dasbor Admin';
                 adminContent.classList.remove('hidden');
-                
                 const adminTabs = [ { name: 'Statistik Kehadiran', target: 'statistik-tab-content' } ];
                 renderTabs(adminTabs);
                 document.getElementById('statistik-tab-content').classList.remove('hidden');
@@ -282,7 +307,6 @@
                     button.textContent = tab.name;
                     button.className = `tab-button py-3 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300`;
                     if (index === 0) button.classList.add('active');
-                    
                     button.onclick = () => {
                         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
                         button.classList.add('active');
@@ -293,15 +317,19 @@
                 });
             }
 
-            // 2. FUNGSI DATA
-            function renderAttendanceData() {
+            // 2. FUNGSI DATA (SUPABASE)
+            async function renderAttendanceData() {
+                attendanceTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Memuat data...</td></tr>`;
+                const { data, error } = await supabaseClient.from('attendance').select('*').order('waktu', { ascending: false });
+                if (error) {
+                    attendanceTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-red-500">Gagal memuat data. Periksa kebijakan RLS di Supabase.</td></tr>`;
+                    return handleSupabaseError(error, 'memuat absensi');
+                }
                 attendanceTableBody.innerHTML = '';
-                const data = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
                 if (data.length === 0) {
                     attendanceTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Belum ada data.</td></tr>`;
                     return;
                 }
-                data.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
                 data.forEach(d => {
                     const date = new Date(d.waktu);
                     const formattedTime = date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
@@ -311,27 +339,36 @@
                 });
             }
 
-            function renderAllReviews() {
+            async function renderAllReviews() {
+                reviewTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">Memuat ulasan...</td></tr>`;
+                const { data, error } = await supabaseClient.from('reviews').select('*').order('timestamp', { ascending: false });
+                if (error) {
+                    reviewTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-red-500">Gagal memuat ulasan. Periksa kebijakan RLS di Supabase.</td></tr>`;
+                    return handleSupabaseError(error, 'memuat ulasan');
+                }
                 reviewTableBody.innerHTML = '';
-                const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]');
-                 if (reviews.length === 0) {
+                 if (data.length === 0) {
                     reviewTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">Belum ada ulasan.</td></tr>`;
                     return;
                 }
-                reviews.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                reviews.forEach(r => {
+                data.forEach(r => {
                     const date = new Date(r.timestamp);
                     const formattedTime = date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="px-6 py-4 text-sm font-medium text-gray-900">${r.bookTitle}</td><td class="px-6 py-4 text-sm text-gray-500">${r.reviewText}</td><td class="px-6 py-4 text-sm text-gray-500">${r.studentName}</td><td class="px-6 py-4 text-sm text-gray-500">${formattedTime}</td>`;
+                    tr.innerHTML = `<td class="px-6 py-4 text-sm font-medium text-gray-900">${r.book_title}</td><td class="px-6 py-4 text-sm text-gray-500">${r.review_text}</td><td class="px-6 py-4 text-sm text-gray-500">${r.student_name}</td><td class="px-6 py-4 text-sm text-gray-500">${formattedTime}</td>`;
                     reviewTableBody.appendChild(tr);
                 });
             }
 
-            function renderAttendanceStats() {
+            async function renderAttendanceStats() {
                 const chartContainer = document.getElementById('stats-chart');
+                chartContainer.innerHTML = '<p class="text-gray-500">Memuat statistik...</p>';
+                const { data, error } = await supabaseClient.from('attendance').select('waktu');
+                 if (error) {
+                    chartContainer.innerHTML = '<p class="text-red-500">Gagal memuat statistik.</p>';
+                    return handleSupabaseError(error, 'memuat statistik');
+                }
                 chartContainer.innerHTML = '';
-                const data = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
                 const stats = {};
                 for (let i = 6; i >= 0; i--) {
                     const d = new Date();
@@ -340,27 +377,18 @@
                     stats[key] = 0;
                 }
                 data.forEach(entry => {
-                    const key = entry.waktu.split('T')[0];
-                    if (stats.hasOwnProperty(key)) {
-                        stats[key]++;
-                    }
+                    const key = new Date(entry.waktu).toISOString().split('T')[0];
+                    if (stats.hasOwnProperty(key)) stats[key]++;
                 });
-
                 const maxCount = Math.max(...Object.values(stats), 1);
                 const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-
                 Object.keys(stats).forEach(key => {
                     const count = stats[key];
                     const heightPercentage = (count / maxCount) * 100;
-                    const dayIndex = new Date(key).getDay();
-
+                    const dayIndex = new Date(key).getUTCDay();
                     const barWrapper = document.createElement('div');
                     barWrapper.className = 'h-full w-12 flex flex-col items-center justify-end';
-                    barWrapper.innerHTML = `
-                        <span class="text-xs font-bold">${count}</span>
-                        <div class="w-full bg-blue-200 rounded-t-md" style="height: ${heightPercentage}%"></div>
-                        <span class="text-xs text-gray-500 mt-1">${days[dayIndex]}</span>
-                    `;
+                    barWrapper.innerHTML = `<span class="text-xs font-bold">${count}</span><div class="w-full bg-blue-200 rounded-t-md" style="height: ${heightPercentage}%"></div><span class="text-xs text-gray-500 mt-1">${days[dayIndex]}</span>`;
                     chartContainer.appendChild(barWrapper);
                 });
             }
@@ -368,8 +396,7 @@
             // 3. FUNGSI BUKU & MODAL BACA
             function renderBooks() {
                 bookListContainer.innerHTML = '';
-                const books = JSON.parse(localStorage.getItem(BOOKS_KEY));
-                books.forEach(book => {
+                sampleBooks.forEach(book => {
                     const card = document.createElement('div');
                     card.className = 'bg-white border border-gray-200 rounded-lg p-4 flex flex-col';
                     card.innerHTML = `<div class="flex-grow"><span class="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">${book.category}</span><h4 class="font-bold text-gray-800 mt-2">${book.title}</h4><p class="text-sm text-gray-500">${book.author}</p><p class="text-xs text-gray-600 italic mt-3 line-clamp-2">${book.content}</p></div><button data-book-id="${book.id}" class="read-review-btn mt-4 w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2 px-3 rounded-lg text-sm">Baca & Ulas</button>`;
@@ -378,39 +405,46 @@
             }
 
             function openReadingModal(bookId) {
-                const books = JSON.parse(localStorage.getItem(BOOKS_KEY));
-                const book = books.find(b => b.id == bookId);
+                const book = sampleBooks.find(b => b.id == bookId);
                 readingModal.querySelector('#reading-modal-title').textContent = book.title;
                 readingModal.querySelector('#reading-modal-content').textContent = book.content;
                 readingModal.querySelector('#review-textarea').value = '';
-                readingModal.querySelector('#review-student-name').value = document.getElementById('nama').value || ''; // Coba ambil nama dari form absensi
+                readingModal.querySelector('#review-student-name').value = document.getElementById('nama').value || '';
                 readingModal.querySelector('#submit-review-button').dataset.bookId = bookId;
                 readingModal.classList.remove('hidden');
             }
 
-            // 4. FUNGSI TARGET MINGGUAN
-            function renderWeeklyGoal() {
-                const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{}');
-                const target = goalData.target || 0;
-                const progress = goalData.progress || 0;
-                const percentage = target > 0 ? (progress / target) * 100 : 0;
-
+            // 4. FUNGSI TARGET MINGGUAN (SUPABASE)
+            async function renderWeeklyGoal() {
                 const progressContainer = document.getElementById('goal-progress');
+                progressContainer.innerHTML = `<p class="text-sm text-gray-600">Memuat target...</p>`;
+                const { data, error } = await supabaseClient.from('goals').select('*').eq('id', 1).single();
+                if (error || !data) {
+                    progressContainer.innerHTML = `<p class="text-sm text-red-600">Gagal memuat target.</p>`;
+                    return handleSupabaseError(error, 'memuat target');
+                }
+                const target = data.target || 0;
+                const progress = data.progress || 0;
+                const percentage = target > 0 ? (progress / target) * 100 : 0;
                 document.getElementById('weekly-goal-input').value = target > 0 ? target : '';
-
                 progressContainer.innerHTML = `<p class="text-sm text-gray-600">Progres Kamu: <span class="font-bold">${progress} dari ${target}</span> buku/artikel terbaca.</p><div class="w-full bg-gray-200 rounded-full h-4 mt-2"><div class="bg-green-500 h-4 rounded-full" style="width: ${percentage}%"></div></div>`;
             }
             
-            function updateGoalProgress() {
-                const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{ "target": 0, "progress": 0 }');
-                const lastUpdate = goalData.lastUpdate ? new Date(goalData.lastUpdate) : new Date(0);
+            async function updateGoalProgress() {
+                const { data: goalData, error: fetchError } = await supabaseClient.from('goals').select('*').eq('id', 1).single();
+                if(fetchError || !goalData) return handleSupabaseError(fetchError, 'memperbarui progress');
+
+                const lastUpdate = goalData.last_update ? new Date(goalData.last_update) : new Date(0);
                 const now = new Date();
                 const lastUpdateWeek = Math.floor((lastUpdate.getTime() - lastUpdate.getTimezoneOffset() * 60000) / (1000 * 60 * 60 * 24 * 7));
                 const nowWeek = Math.floor((now.getTime() - now.getTimezoneOffset() * 60000) / (1000 * 60 * 60 * 24 * 7));
-                if (nowWeek > lastUpdateWeek) goalData.progress = 0;
-                goalData.progress = (goalData.progress || 0) + 1;
-                goalData.lastUpdate = now.toISOString();
-                localStorage.setItem(GOAL_KEY, JSON.stringify(goalData));
+                
+                let newProgress = goalData.progress || 0;
+                if (nowWeek > lastUpdateWeek) newProgress = 0;
+
+                newProgress++;
+                const { error: updateError } = await supabaseClient.from('goals').update({ progress: newProgress, last_update: now.toISOString() }).eq('id', 1);
+                if (updateError) handleSupabaseError(updateError, 'memperbarui progress');
             }
 
             // === EVENT LISTENERS ===
@@ -438,7 +472,7 @@
                 checkLoginStatus();
             });
 
-            attendanceForm.addEventListener('submit', (e) => {
+            attendanceForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const newEntry = {
                     nama: document.getElementById('nama').value.trim(),
@@ -447,11 +481,12 @@
                     status: document.querySelector('input[name="status_baca"]:checked').value,
                     waktu: new Date().toISOString()
                 };
-                const data = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
-                data.push(newEntry);
-                localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(data));
+                
+                const { error } = await supabaseClient.from('attendance').insert([newEntry]);
+                if (error) return handleSupabaseError(error, 'mengirim absensi');
+                
                 if (newEntry.status === 'Sudah Baca') {
-                    updateGoalProgress();
+                    await updateGoalProgress();
                     renderWeeklyGoal();
                 }
                 renderAttendanceData();
@@ -460,25 +495,28 @@
             
             bookListContainer.addEventListener('click', (e) => {
                 const targetButton = e.target.closest('.read-review-btn');
-                if (targetButton) {
-                    openReadingModal(targetButton.dataset.bookId);
-                }
+                if (targetButton) openReadingModal(targetButton.dataset.bookId);
             });
             
             readingModal.querySelector('#cancel-review-button').addEventListener('click', () => readingModal.classList.add('hidden'));
             
-            readingModal.querySelector('#submit-review-button').addEventListener('click', (e) => {
+            readingModal.querySelector('#submit-review-button').addEventListener('click', async (e) => {
                 const bookId = e.target.dataset.bookId;
                 const reviewText = readingModal.querySelector('#review-textarea').value.trim();
                 const studentName = readingModal.querySelector('#review-student-name').value.trim();
 
                 if (reviewText && studentName) {
-                    const books = JSON.parse(localStorage.getItem(BOOKS_KEY));
-                    const book = books.find(b => b.id == bookId);
-                    const newReview = { bookId: book.id, bookTitle: book.title, studentName: studentName, reviewText: reviewText, timestamp: new Date().toISOString() };
-                    const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY));
-                    reviews.push(newReview);
-                    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+                    const book = sampleBooks.find(b => b.id == bookId);
+                    const newReview = { 
+                        book_id: book.id, 
+                        book_title: book.title, 
+                        student_name: studentName, 
+                        review_text: reviewText,
+                        timestamp: new Date().toISOString()
+                    };
+                    const { error } = await supabaseClient.from('reviews').insert([newReview]);
+                    if (error) return handleSupabaseError(error, 'mengirim ulasan');
+
                     renderAllReviews();
                     readingModal.classList.add('hidden');
                 } else {
@@ -486,13 +524,11 @@
                 }
             });
             
-            setGoalButton.addEventListener('click', () => {
+            setGoalButton.addEventListener('click', async () => {
                 const target = document.getElementById('weekly-goal-input').value;
                 if(target && target > 0) {
-                    const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{}');
-                    goalData.target = parseInt(target);
-                    if(goalData.progress === undefined) goalData.progress = 0;
-                    localStorage.setItem(GOAL_KEY, JSON.stringify(goalData));
+                    const { error } = await supabaseClient.from('goals').update({ target: parseInt(target) }).eq('id', 1);
+                    if (error) return handleSupabaseError(error, 'mengatur target');
                     renderWeeklyGoal();
                 }
             });
