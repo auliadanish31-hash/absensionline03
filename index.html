@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Absensi & Literasi</title>
-    <!-- Memuat Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Memuat Tailwind CSS untuk styling -->
+    <!-- HANYA MEMUAT TAILWIND (Supabase client dihapus) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Menggunakan font Inter dari Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -101,6 +99,7 @@
                                     <div class="flex items-center"><input id="belum-baca" name="status_baca" type="radio" value="Belum Baca" required class="h-4 w-4"><label for="belum-baca" class="ml-2">Belum Baca</label></div>
                                 </div>
                                 <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition mt-6">Kirim Absensi</button>
+                                <p id="form-error" class="text-red-500 text-xs h-4 text-center"></p>
                             </div>
                         </form>
                          <div class="mt-8">
@@ -146,6 +145,7 @@
 
                 <!-- KONTEN ADMIN -->
                 <div id="admin-content" class="hidden">
+                    <!-- Tab Statistik -->
                     <div id="statistik-tab-content" class="tab-content py-6">
                          <h2 class="text-xl font-semibold text-gray-800 mb-4">Statistik Kehadiran Mingguan</h2>
                          <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -154,6 +154,27 @@
                                 <!-- Statistik akan di-generate oleh JS -->
                             </div>
                          </div>
+                    </div>
+
+                    <!-- Tab Baru: Kelola Pengguna -->
+                    <div id="pengguna-tab-content" class="tab-content hidden py-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Kelola Data Pengguna (Siswa)</h2>
+                        <p class="text-sm text-gray-600 mb-4">Daftar ini diperbarui secara otomatis setiap kali siswa mengisi absensi. Ini adalah daftar semua siswa yang telah menggunakan aplikasi.</p>
+                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Lengkap</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kelas</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Absen</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pertama Dibuat</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profiles-table-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Daftar pengguna akan di-generate oleh JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -182,39 +203,17 @@
     </div>
 
     <script>
+        // ========================================================================
+        // APLIKASI KEMBALI MENGGUNAKAN LOCALSTORAGE
+        // Semua koneksi ke Supabase telah dihapus.
+        // ========================================================================
+
         document.addEventListener('DOMContentLoaded', () => {
-            // === KONEKSI SUPABASE ===
-            // GANTI DENGAN URL DAN KUNCI ANON SUPABASE ANDA DARI PROYEK SUPABASE
-            const SUPABASE_URL = 'https://uyljswbfmifypzzzlxzh.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5bGpzd2JmbWlmeXB6enpseHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzMDEwOTcsImV4cCI6MjA3NTg3NzA5N30.YS0ysqali8ub71Kbn1pkW6E-cNuYfdYt5HQaK6pVrtE';
-
-            // Cek apakah URL dan Key masih placeholder
-            if (SUPABASE_URL.includes('URL_PROYEK_ANDA') || SUPABASE_ANON_KEY.includes('KUNCI_ANON_ANDA')) {
-                const loginContainer = document.getElementById('login-container');
-                loginContainer.innerHTML = `
-                    <div class="text-center py-10">
-                        <h2 class="text-2xl font-bold text-red-600">Konfigurasi Diperlukan!</h2>
-                        <p class="text-gray-600 mt-4">
-                            Harap ganti nilai <code class="bg-red-100 text-red-700 p-1 rounded">SUPABASE_URL</code> dan <code class="bg-red-100 text-red-700 p-1 rounded">SUPABASE_ANON_KEY</code> di dalam file HTML ini dengan kredensial dari proyek Supabase Anda.
-                        </p>
-                        <p class="text-gray-500 mt-2 text-sm">Ikuti instruksi di file PANDUAN.md untuk menyelesaikannya.</p>
-                    </div>
-                `;
-                return; // Menghentikan eksekusi skrip lebih lanjut
-            }
-
-            let supabaseClient;
-            try {
-                // 'supabase' here is the global object from the Supabase script.
-                // We create a client instance and store it in 'supabaseClient'.
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } catch (error) {
-                console.error("Supabase initialization failed. Please check your URL and Key.", error);
-                const appBody = document.querySelector("#app-page .p-6");
-                if (appBody) {
-                    appBody.innerHTML = `<div class="text-center py-10"><h2 class="text-xl font-bold text-red-600">Koneksi Gagal</h2><p class="text-gray-600 mt-2">Pastikan SUPABASE_URL dan SUPABASE_ANON_KEY sudah benar.</p></div>`;
-                }
-            }
+            // === KUNCI PENYIMPANAN LOKAL ===
+            const ATTENDANCE_KEY = 'attendanceData';
+            const REVIEWS_KEY = 'reviewsData';
+            const GOAL_KEY = 'weeklyGoal';
+            const PROFILES_KEY = 'profilesData';
             
             // === DATA STATIS ===
             const ADMIN_PASS = 'admin123';
@@ -245,17 +244,14 @@
             const bookListContainer = document.getElementById('book-list');
             const readingModal = document.getElementById('reading-modal');
             const setGoalButton = document.getElementById('set-goal-button');
+            const formError = document.getElementById('form-error');
 
             // === FUNGSI UTAMA ===
-            function handleSupabaseError(error, feature) {
-                console.error(`Error ${feature}:`, error);
-                alert(`Terjadi kesalahan saat ${feature}. Periksa konsol untuk detail.`);
-            }
 
             // 1. FUNGSI LOGIN & TAMPILAN
             function checkLoginStatus() {
                 const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-                if (isLoggedIn && supabaseClient) {
+                if (isLoggedIn) {
                     loginPage.classList.add('hidden');
                     appPage.classList.remove('hidden');
                     setupDashboard();
@@ -295,10 +291,14 @@
             function setupAdminDashboard() {
                 appTitle.textContent = 'Dasbor Admin';
                 adminContent.classList.remove('hidden');
-                const adminTabs = [ { name: 'Statistik Kehadiran', target: 'statistik-tab-content' } ];
+                const adminTabs = [ 
+                    { name: 'Statistik Kehadiran', target: 'statistik-tab-content' },
+                    { name: 'Kelola Pengguna', target: 'pengguna-tab-content' }
+                ];
                 renderTabs(adminTabs);
                 document.getElementById('statistik-tab-content').classList.remove('hidden');
                 renderAttendanceStats();
+                renderAllProfiles();
             }
 
             function renderTabs(tabs) {
@@ -312,24 +312,26 @@
                         button.classList.add('active');
                         document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
                         document.getElementById(tab.target).classList.remove('hidden');
+                        
+                        if (tab.target === 'pengguna-tab-content') {
+                            renderAllProfiles();
+                        }
                     };
                     tabsContainer.appendChild(button);
                 });
             }
 
-            // 2. FUNGSI DATA (SUPABASE)
-            async function renderAttendanceData() {
-                attendanceTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Memuat data...</td></tr>`;
-                const { data, error } = await supabaseClient.from('attendance').select('*').order('waktu', { ascending: false });
-                if (error) {
-                    attendanceTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-red-500">Gagal memuat data. Periksa kebijakan RLS di Supabase.</td></tr>`;
-                    return handleSupabaseError(error, 'memuat absensi');
-                }
+            // 2. FUNGSI DATA (LOCALSTORAGE)
+            function renderAttendanceData() {
                 attendanceTableBody.innerHTML = '';
+                const data = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
+                
                 if (data.length === 0) {
                     attendanceTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500">Belum ada data.</td></tr>`;
                     return;
                 }
+                
+                data.sort((a, b) => new Date(b.waktu) - new Date(a.waktu)); // Urutkan terbaru di atas
                 data.forEach(d => {
                     const date = new Date(d.waktu);
                     const formattedTime = date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
@@ -339,19 +341,17 @@
                 });
             }
 
-            async function renderAllReviews() {
-                reviewTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">Memuat ulasan...</td></tr>`;
-                const { data, error } = await supabaseClient.from('reviews').select('*').order('timestamp', { ascending: false });
-                if (error) {
-                    reviewTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-red-500">Gagal memuat ulasan. Periksa kebijakan RLS di Supabase.</td></tr>`;
-                    return handleSupabaseError(error, 'memuat ulasan');
-                }
+            function renderAllReviews() {
                 reviewTableBody.innerHTML = '';
-                 if (data.length === 0) {
+                const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]');
+                
+                if (reviews.length === 0) {
                     reviewTableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">Belum ada ulasan.</td></tr>`;
                     return;
                 }
-                data.forEach(r => {
+
+                reviews.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                reviews.forEach(r => {
                     const date = new Date(r.timestamp);
                     const formattedTime = date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
                     const tr = document.createElement('tr');
@@ -360,15 +360,10 @@
                 });
             }
 
-            async function renderAttendanceStats() {
+            function renderAttendanceStats() {
                 const chartContainer = document.getElementById('stats-chart');
-                chartContainer.innerHTML = '<p class="text-gray-500">Memuat statistik...</p>';
-                const { data, error } = await supabaseClient.from('attendance').select('waktu');
-                 if (error) {
-                    chartContainer.innerHTML = '<p class="text-red-500">Gagal memuat statistik.</p>';
-                    return handleSupabaseError(error, 'memuat statistik');
-                }
                 chartContainer.innerHTML = '';
+                const data = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
                 const stats = {};
                 for (let i = 6; i >= 0; i--) {
                     const d = new Date();
@@ -393,6 +388,33 @@
                 });
             }
 
+            function renderAllProfiles() {
+                const tableBody = document.getElementById('profiles-table-body');
+                if (!tableBody) return;
+                
+                tableBody.innerHTML = '';
+                const data = JSON.parse(localStorage.getItem(PROFILES_KEY) || '[]');
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">Belum ada profil siswa yang tersimpan.</td></tr>`;
+                    return;
+                }
+
+                data.sort((a, b) => a.nama_lengkap.localeCompare(b.nama_lengkap)); // Urutkan berdasarkan nama
+                data.forEach(profile => {
+                    const tr = document.createElement('tr');
+                    const formattedDate = new Date(profile.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">${profile.nama_lengkap}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${profile.kelas || ''}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${profile.no_absen || ''}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${formattedDate}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+
             // 3. FUNGSI BUKU & MODAL BACA
             function renderBooks() {
                 bookListContainer.innerHTML = '';
@@ -414,37 +436,32 @@
                 readingModal.classList.remove('hidden');
             }
 
-            // 4. FUNGSI TARGET MINGGUAN (SUPABASE)
-            async function renderWeeklyGoal() {
+            // 4. FUNGSI TARGET MINGGUAN (LOCALSTORAGE)
+            function renderWeeklyGoal() {
                 const progressContainer = document.getElementById('goal-progress');
-                progressContainer.innerHTML = `<p class="text-sm text-gray-600">Memuat target...</p>`;
-                const { data, error } = await supabaseClient.from('goals').select('*').eq('id', 1).single();
-                if (error || !data) {
-                    progressContainer.innerHTML = `<p class="text-sm text-red-600">Gagal memuat target.</p>`;
-                    return handleSupabaseError(error, 'memuat target');
-                }
-                const target = data.target || 0;
-                const progress = data.progress || 0;
+                const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{"target": 0, "progress": 0}');
+                
+                const target = goalData.target || 0;
+                const progress = goalData.progress || 0;
                 const percentage = target > 0 ? (progress / target) * 100 : 0;
                 document.getElementById('weekly-goal-input').value = target > 0 ? target : '';
                 progressContainer.innerHTML = `<p class="text-sm text-gray-600">Progres Kamu: <span class="font-bold">${progress} dari ${target}</span> buku/artikel terbaca.</p><div class="w-full bg-gray-200 rounded-full h-4 mt-2"><div class="bg-green-500 h-4 rounded-full" style="width: ${percentage}%"></div></div>`;
             }
             
-            async function updateGoalProgress() {
-                const { data: goalData, error: fetchError } = await supabaseClient.from('goals').select('*').eq('id', 1).single();
-                if(fetchError || !goalData) return handleSupabaseError(fetchError, 'memperbarui progress');
-
+            function updateGoalProgress() {
+                const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{ "target": 0, "progress": 0 }');
                 const lastUpdate = goalData.last_update ? new Date(goalData.last_update) : new Date(0);
                 const now = new Date();
                 const lastUpdateWeek = Math.floor((lastUpdate.getTime() - lastUpdate.getTimezoneOffset() * 60000) / (1000 * 60 * 60 * 24 * 7));
                 const nowWeek = Math.floor((now.getTime() - now.getTimezoneOffset() * 60000) / (1000 * 60 * 60 * 24 * 7));
                 
-                let newProgress = goalData.progress || 0;
-                if (nowWeek > lastUpdateWeek) newProgress = 0;
+                if (nowWeek > lastUpdateWeek) {
+                    goalData.progress = 0;
+                }
 
-                newProgress++;
-                const { error: updateError } = await supabaseClient.from('goals').update({ progress: newProgress, last_update: now.toISOString() }).eq('id', 1);
-                if (updateError) handleSupabaseError(updateError, 'memperbarui progress');
+                goalData.progress = (goalData.progress || 0) + 1;
+                goalData.last_update = now.toISOString();
+                localStorage.setItem(GOAL_KEY, JSON.stringify(goalData));
             }
 
             // === EVENT LISTENERS ===
@@ -472,8 +489,10 @@
                 checkLoginStatus();
             });
 
-            attendanceForm.addEventListener('submit', async (e) => {
+            attendanceForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                formError.textContent = '';
+
                 const newEntry = {
                     nama: document.getElementById('nama').value.trim(),
                     kelas: document.getElementById('kelas').value.trim(),
@@ -482,11 +501,33 @@
                     waktu: new Date().toISOString()
                 };
                 
-                const { error } = await supabaseClient.from('attendance').insert([newEntry]);
-                if (error) return handleSupabaseError(error, 'mengirim absensi');
+                // === PENTING: Melengkapi Data Pengguna (Upsert Lokal) ===
+                const profilesData = JSON.parse(localStorage.getItem(PROFILES_KEY) || '[]');
+                const existingProfileIndex = profilesData.findIndex(p => p.nama_lengkap === newEntry.nama);
+                
+                if (existingProfileIndex > -1) {
+                    // Perbarui data yang ada
+                    profilesData[existingProfileIndex].kelas = newEntry.kelas;
+                    profilesData[existingProfileIndex].no_absen = newEntry.no_absen;
+                } else {
+                    // Tambah data baru
+                    profilesData.push({
+                        nama_lengkap: newEntry.nama,
+                        kelas: newEntry.kelas,
+                        no_absen: newEntry.no_absen,
+                        created_at: new Date().toISOString()
+                    });
+                }
+                localStorage.setItem(PROFILES_KEY, JSON.stringify(profilesData));
+                // === Akhir blok melengkapi data ===
+
+                // Simpan data absensi
+                const attendanceData = JSON.parse(localStorage.getItem(ATTENDANCE_KEY) || '[]');
+                attendanceData.push(newEntry);
+                localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(attendanceData));
                 
                 if (newEntry.status === 'Sudah Baca') {
-                    await updateGoalProgress();
+                    updateGoalProgress();
                     renderWeeklyGoal();
                 }
                 renderAttendanceData();
@@ -500,7 +541,7 @@
             
             readingModal.querySelector('#cancel-review-button').addEventListener('click', () => readingModal.classList.add('hidden'));
             
-            readingModal.querySelector('#submit-review-button').addEventListener('click', async (e) => {
+            readingModal.querySelector('#submit-review-button').addEventListener('click', (e) => {
                 const bookId = e.target.dataset.bookId;
                 const reviewText = readingModal.querySelector('#review-textarea').value.trim();
                 const studentName = readingModal.querySelector('#review-student-name').value.trim();
@@ -514,8 +555,10 @@
                         review_text: reviewText,
                         timestamp: new Date().toISOString()
                     };
-                    const { error } = await supabaseClient.from('reviews').insert([newReview]);
-                    if (error) return handleSupabaseError(error, 'mengirim ulasan');
+                    
+                    const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || '[]');
+                    reviews.push(newReview);
+                    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
 
                     renderAllReviews();
                     readingModal.classList.add('hidden');
@@ -524,15 +567,17 @@
                 }
             });
             
-            setGoalButton.addEventListener('click', async () => {
+            setGoalButton.addEventListener('click', () => {
                 const target = document.getElementById('weekly-goal-input').value;
                 if(target && target > 0) {
-                    const { error } = await supabaseClient.from('goals').update({ target: parseInt(target) }).eq('id', 1);
-                    if (error) return handleSupabaseError(error, 'mengatur target');
+                    const goalData = JSON.parse(localStorage.getItem(GOAL_KEY) || '{}');
+                    goalData.target = parseInt(target);
+                    // Tidak reset progress saat target diubah
+                    if (goalData.progress === undefined) goalData.progress = 0;
+                    localStorage.setItem(GOAL_KEY, JSON.stringify(goalData));
                     renderWeeklyGoal();
                 }
             });
-
             // Jalankan pengecekan login saat halaman dimuat
             checkLoginStatus();
         });
